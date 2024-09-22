@@ -3,11 +3,13 @@
 module Main (main) where
 
 import API
-import DB
 import Network.Wai.Handler.Warp
-
+import Hasql.Pool (acquire)
 
 main :: IO ()
 main =  do
-    connectToDB
-    run 8081 app
+  pool <- acquire 1 1 1 1 settings
+  run 8080 $ app pool
+  where
+    settings = "postgresql://postgres:postgres@localhost:5432/postgres"
+

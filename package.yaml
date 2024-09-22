@@ -52,11 +52,11 @@ default-extensions:
 - QuasiQuotes
 - DataKinds
 - DeriveGeneric
-- GeneralizedNewtypeDeriving
 - DeriveFunctor
 - TemplateHaskell
 - TypeOperators
 - FlexibleContexts
+- GeneralizedNewtypeDeriving
 
 library:
   source-dirs: src
