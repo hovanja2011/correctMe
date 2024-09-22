@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TypeOperators #-}
 
 
@@ -12,9 +13,13 @@ import Servant.API
 import GHC.Generics
 import Servant
 import Data.Aeson
+import Control.Monad.IO.Class (liftIO)
 
 -- GET /messages/?sortby={approved}
-type MessageAPI = "messages" :> QueryParam "sortby" SortBy :> Get '[JSON] [Message]
+type MessageAPI = "allmessages" :> QueryParam "sortby" SortBy :> Get '[JSON] [Message]
+             :<|> "postmessage" :> ReqBody '[JSON] Message
+                                :> Post '[JSON] ()
+
 
 data SortBy = Approved | Author deriving (Eq, Show, Generic)
 
@@ -26,28 +31,39 @@ instance FromHttpApiData SortBy where
 
 
 data Message = Message {
-    content :: String,
+    content :: Text,
     approved :: Bool,
-    author :: String
+    author :: Text
 } deriving (Eq, Show, Generic)
 
+instance FromJSON Message
 instance ToJSON Message
+
 
 messageAPI :: Proxy MessageAPI
 messageAPI = Proxy
 
 testMessages :: [Message]
-testMessages = [ Message "test1" True "author1",
-                 Message "test2" False "author2"]
+testMessages = [Message (pack "test1") True  (pack "author1"),
+                Message (pack "test2") False (pack "author2")]
 
 server1 :: Server MessageAPI
-server1 = messages
+server1 = allmessages
+        :<|> postmessage
     where
-        messages :: Maybe SortBy -> Handler [Message]
-        messages msortby = return $ case msortby of
+        allmessages :: Maybe SortBy -> Handler [Message]
+        allmessages msortby = return $ case msortby of
           Nothing -> testMessages
           Just Approved  -> filter (\m -> approved m == True) testMessages
-          Just Author  -> filter (\m -> author m == "me") testMessages
+          Just Author  -> filter (\m -> author m == (pack "me")) testMessages
+
+        postmessage :: Message -> Handler ()
+        postmessage m = do
+          liftIO . putStrLn . unpack $ content m 
+          return ()
 
 app1 :: Application
 app1 = serve messageAPI server1
+
+
+-- curl -X POST -d '{"content":"Alp Mestanogullari", "approved" : false , "author":"me"}' -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:8081/postmessage
