@@ -20,12 +20,21 @@ extra-source-files:
 description:         Please see the README on GitHub at <https://github.com/githubuser/correctMe#readme>
 
 dependencies:
-- base >= 4.7 && < 5
-- text
-- servant
 - aeson
+- base >= 4.7 && < 5
+- bytestring
+- hasql
+- hasql-pool
+- hasql-th
+- mtl
+- profunctors
+- servant
 - servant-server
+- text
+- vector
+- wai
 - warp
+
 
 ghc-options:
 - -Wall
@@ -37,6 +46,17 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+
+default-extensions:
+- OverloadedStrings
+- QuasiQuotes
+- DataKinds
+- DeriveGeneric
+- GeneralizedNewtypeDeriving
+- DeriveFunctor
+- TemplateHaskell
+- TypeOperators
+- FlexibleContexts
 
 library:
   source-dirs: src

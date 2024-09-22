@@ -1,9 +1,13 @@
+{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+
 module Main (main) where
 
-import Application
+import API
+import DB
 import Network.Wai.Handler.Warp
 
 
-
 main :: IO ()
-main = run 8081 app1
+main =  do
+    connectToDB
+    run 8081 app
