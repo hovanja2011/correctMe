@@ -1,7 +1,11 @@
 # examples
 
 GET
-curl http://localhost:8080/allmessages
+curl http://localhost:8080/messages/all
+
+curl http://localhost:8080/messages/sortedby/approve?isapproved=false
+
+curl http://localhost:8080/messages/sortedby/author?authorname="Me"
 
 
 POST

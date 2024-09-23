@@ -11,8 +11,9 @@ import Data.Text
 
 type MessageAPI = "messages" :> 
                             ( "all" :> Get '[JSON] [Message]
-                             :<|> "sortbyapprove" :> QueryParam' '[Required] "areapproved" Bool :> Get '[JSON] [Message]
-                             :<|> "sortbyauthor" :> QueryParam' '[Required] "authoris" Text :> Get '[JSON] [Message]
+                             :<|> "sortedby" :> ( 
+                                                  "approve" :> QueryParam' '[Required] "isapproved" Bool :> Get '[JSON] [Message]
+                                             :<|> "author"  :> QueryParam' '[Required] "authorname" Text :> Get '[JSON] [Message])
                             )
                              
 messageAPI :: Proxy MessageAPI
@@ -25,4 +26,4 @@ app pool = serve messageAPI $ hoistServer messageAPI appMToHandler $ server
     appMToHandler m = runReaderT (runAppM m) pool
 
 server :: ServerT MessageAPI AppM
-server = getMessages :<|> getSortedByApproveMessages :<|> getSortedByAuthorMessages
+server = getAllMessages :<|> getSortedByApproveMessages :<|> getSortedByAuthorMessages

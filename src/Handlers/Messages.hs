@@ -1,5 +1,5 @@
 module Handlers.Messages 
-    (getMessages
+    ( getAllMessages
     , getSortedByApproveMessages
     , getSortedByAuthorMessages) where
 
@@ -15,10 +15,10 @@ import Control.Monad.Error.Class (MonadError)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as LBS
 import Data.Text (Text)
-
+import GHC.Int (Int64)
 -----------------------------------
-getMessages :: (MonadDB m, MonadError ServerError m) => m [Message]
-getMessages = do
+getAllMessages :: (MonadDB m, MonadError ServerError m) => m [Message]
+getAllMessages = do
   result <- runSession allMessagesSession
   case result of
     Right messages -> pure messages
@@ -76,3 +76,21 @@ allAuthorSortedMessages = rmap tuplesToMessages [TH.vectorStatement| select cont
   where
     tupleToMessage (c, ap, au) = Message c ap au
     tuplesToMessages vec = V.toList $ V.map tupleToMessage vec
+
+
+------------------------------------
+-- getAllMessages :: (MonadDB m, MonadError ServerError m) => m [Message]
+-- getAllMessages = do
+--   result <- runSession allMessagesSession
+--   case result of
+--     Right messages -> pure messages
+--     Left err -> parseUsageError err
+--   where
+--     parseUsageError msg = throw500 (BS.pack $ show msg)
+--     throw500 msg = throwError err500 {errBody = LBS.fromStrict msg}
+
+-- allMessagesSession :: Session [Message]
+-- allMessagesSession = Session.statement () allMessages
+
+insertMessage :: Statement (Text, Text) Int64
+insertMessage = [TH.singletonStatement| insert into "messages" (content, approved, author) values ($1 :: text, false, $2 :: text) returning id :: int8|]
