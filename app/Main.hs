@@ -2,9 +2,9 @@
 
 module Main (main) where
 
-import API
-import Network.Wai.Handler.Warp
-import Hasql.Pool (acquire)
+import           API
+import           Network.Wai.Handler.Warp
+import           Hasql.Pool               (acquire)
 
 main :: IO ()
 main =  do

@@ -9,4 +9,4 @@ curl http://localhost:8080/messages/sortedby/author?authorname="Me"
 
 
 POST
-curl -X POST -d '{"content":"Alp Mestanogullari", "approved" : false , "author":"me"}' -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:8080/postmessage
+curl -X POST -d '{"content":"message test text", "approved" : false , "author":"MyName"}' -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:8080/messages/create

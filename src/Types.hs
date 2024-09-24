@@ -1,15 +1,15 @@
 
 module Types where
 
-import Data.Text hiding (filter)
+import Data.Text                  hiding (filter)
 import Servant.API
 import GHC.Generics
 import Data.Aeson
 
 import Control.Monad.Reader
 import Servant
-import Hasql.Session (Session)
-import Control.Monad.Error.Class (MonadError)
+import Hasql.Session              (Session)
+import Control.Monad.Error.Class  (MonadError)
 import Hasql.Pool
 
 ---------------------- Message ---------------------
