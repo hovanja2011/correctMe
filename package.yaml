@@ -33,6 +33,7 @@ dependencies:
 - text
 - vector
 - wai
+- wai-cors
 - warp
 
 

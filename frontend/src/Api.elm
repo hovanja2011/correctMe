@@ -6,6 +6,7 @@ import Types exposing (..)
 import RemoteData exposing (WebData)
 import RemoteData.Http exposing (..)
 import Json.Decode as D
+import Http exposing (header)
 
 
 prefix : String
@@ -15,7 +16,7 @@ prefix =
 
 apiGetAllMessages : String
 apiGetAllMessages =
-    prefix ++ "/messages/all"
+    prefix ++ "/messages/all/"
 
 apiGetApprovedMessages : String
 apiGetApprovedMessages =
@@ -28,8 +29,11 @@ apiGetMessagesByName =
 
 specialConfig : Config
 specialConfig =
-    { defaultConfig | headers = [ noCache, acceptJson ] }
+    { defaultConfig | headers = [ noCache, acceptJson , 
+                                  header "Access-Control-Allow-Origin" "*",
+                                  header "Access-Control-Allow-Methods" "GET, POST",
+                                  header "Access-Control-Allow-Credentials" "true"]}
 
 getAllMessages : (WebData (List DictEntry) -> msg) -> Cmd msg
 getAllMessages msg =
-    (getWithConfig specialConfig) apiGetAllMessages msg <| D.list decodeDict
+    (getWithConfig defaultConfig) apiGetAllMessages msg <| D.list decodeDict
