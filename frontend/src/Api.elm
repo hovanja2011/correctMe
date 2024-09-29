@@ -35,6 +35,9 @@ apiPostMessage : String
 apiPostMessage =
     prefix ++ "/messages/create"
 
+apiSpellService : String
+apiSpellService = "https://speller.yandex.net/services/spellservice.json/checkText?text="
+
 specialConfig : Config
 specialConfig =
     { defaultConfig | headers = [ noCache, acceptJson , 
@@ -66,6 +69,10 @@ postMessage (c, a) message =
             ]
     in
     post apiPostMessage message (D.field "identM" D.int) postBody
+
+checkMessage : DictEntry -> (WebData (List SpellerResponse) -> msg) -> Cmd msg
+checkMessage message msg = 
+    (getWithConfig defaultConfig) (apiSpellService ++ message.content) msg <| D.list decodeSpellerResponse
 
 
 stringFromBool : Bool -> String

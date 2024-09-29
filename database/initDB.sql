@@ -5,3 +5,6 @@ CREATE TABLE IF NOT EXISTS "messages"
   , author   text NOT NULL 
   );
 
+INSERT INTO "messages" (content, approved, author) VALUES 
+  ('Тестовое подтвержденное сообщение', true, 'Boss'),
+  ('Тестовое неподтвержденное сообщение', false, 'Worker');

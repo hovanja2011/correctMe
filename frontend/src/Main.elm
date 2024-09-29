@@ -9,6 +9,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import MessageToast exposing (MessageToast)
 import Api
 import Maybe exposing (..)
+import List
 
 
 type alias TodoEdit =
@@ -28,6 +29,7 @@ type alias Model =
     , errorMessage : Maybe String
 
     , showApproved : Bool
+    , spellerChecks : List (Int, String)
     }
 
 
@@ -44,6 +46,9 @@ type Msg
     | Author String
 
     | ShowApproved
+    | CheckSpell (List DictEntry)
+
+    | ShowCheckSpellResult DictEntry (WebData (List SpellerResponse)) 
 
 
 init : () -> ( Model, Cmd Msg )
@@ -58,7 +63,8 @@ init flags =
 
         Nothing
 
-        False
+        True
+        []
     , Api.getAllMessages GetMessages
     )
 
@@ -126,8 +132,27 @@ update msg model =
         ShowApproved -> 
             ({ model | showApproved = not model.showApproved }
             , Api.getApprovedMessages model.showApproved GetMessages)
+        
+        CheckSpell messages -> 
+            ( {model | spellerChecks = []}
+            , Cmd.batch <| List.map (\m -> Api.checkMessage m (ShowCheckSpellResult m)) messages )
+        
+        ShowCheckSpellResult dict resW -> 
+            case resW of
+                Success res -> 
+                    ({ model | errorMessage = Just ("Проверка удалась" )
+                               , spellerChecks = (dict.id, forEveryResponseCreateList res) :: model.spellerChecks }
+                    , Cmd.none)
+                _ -> 
+                    ( {model | errorMessage = Just "Проверка не удалась"}
+                    , Cmd.none )
 
 
+forEveryResponseCreateList : List SpellerResponse -> String
+forEveryResponseCreateList s = List.foldl (\l r -> l.word ++ " (" ++ takeFirstGoodWord l ++ "), " ++ r) "" s
+
+takeFirstGoodWord : SpellerResponse -> String
+takeFirstGoodWord r = withDefault "" (List.head r.s)
 
 
 view : Model -> Html Msg
@@ -151,6 +176,12 @@ view model =
         , span
                 [ ]
                 [ text (withDefault "Ошибки при работе: Нет" model.errorMessage) ]
+        , div [] [
+            button
+                [ class "btn btn-primary form-control" 
+                    , onClick (CheckSpell model.messages)]
+                    [ text "yandex speller, check all messages" ]
+                ]
         , hr [] []
         , div [ class "header" ] [
             span [] [ text "Сожержание сообщения" ]
@@ -159,10 +190,11 @@ view model =
             , span [] [ text "     |     " ]
             , span [] [ text "Статус подтверждения" ]
             , span [] [ text "     |     " ]
-            , span [] [ text "Результат проверки синтаксиса" ]
+            , span [] [ text "Ошибочное слово (вариант правильного написания)" ]
             ]
         , span [] [ text "--------------------------------------------------------------------------------------------------------------------------------------" ]
-        , div [] (List.indexedMap viewMessages model.messages)
+        ,
+         div [] (List.map (viewMessages model.spellerChecks) model.messages)
         ]
 
 viewInput : String -> String -> String -> (String -> msg) -> Html msg
@@ -170,8 +202,8 @@ viewInput t p v toMsg =
   input [ type_ t, placeholder p, value v, onInput toMsg ] []
 
 
-viewMessages : Int -> DictEntry -> Html Msg
-viewMessages index message = 
+viewMessages : List (Int, String) -> DictEntry -> Html Msg
+viewMessages checks message = 
     div [ class "card" ]
         [ div [ class "card-block" ]
             [ span
@@ -196,7 +228,7 @@ viewMessages index message =
                 [ text "     |     "]
             , span
                 [ ]
-                [ text "Колонка для результатов проверки синтаксиса" ]
+                [ text <| elem message.id checks]
             -- , span
             --     [ onClick (RemoveTodo index)
             --     , class "float-right"
@@ -205,6 +237,11 @@ viewMessages index message =
             ]
         ]
 
+elem : Int -> List (Int, String) -> String
+elem index list =  case List.filter (\(i, _) -> i == index) list of
+    [] -> ""
+    [(i, s)] -> s
+    _ -> "Слишком много записей для данного идентификатора"
 
 
 subscriptions : Model -> Sub Msg

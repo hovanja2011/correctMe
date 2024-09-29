@@ -13,7 +13,6 @@ import Servant
 import Hasql.Session              (Session)
 import Control.Monad.Error.Class  (MonadError)
 import Hasql.Pool
-import GHC.Encoding.UTF8
 
 ---------------------- Message ---------------------
 
@@ -39,7 +38,7 @@ instance ToJSON IdentM
 
 
 instance FromHttpApiData IdentM where
-  parseUrlPiece s = Right $ IdentM ((read $ unpack s ) :: Int64)
+  parseUrlPiece = Right . IdentM . read . unpack 
     -- _       -> Left . pack $ "unexpexted sortby param"
 
 
@@ -50,10 +49,9 @@ data Approved = Approved {
 }
 
 instance FromHttpApiData Approved where
-  parseUrlPiece s = case s of
-    "true"  -> Right $ Approved True
-    "false" -> Right $ Approved False
-    _       -> Left . pack $ "unexpexted sortby param"
+  parseUrlPiece "true" = Right $ Approved True
+  parseUrlPiece "false" = Right $ Approved False
+  parseUrlPiece _ = Left . pack $ "unexpexted sortby param"
 
 
 data Author = Author {
@@ -89,3 +87,28 @@ instance MonadDB AppM where
       result <- liftIO $ use pool sess
       runAppM $ pure result
 
+---------------------- SpellerRequest ---------------------
+data SpellerRequest = SpellerRequest {
+    text :: Text,
+    lang :: Text,
+    options :: Text,
+    format :: Text
+} deriving (Eq, Show, Generic)
+
+instance FromJSON SpellerRequest
+instance ToJSON SpellerRequest
+
+
+---------------------- SpellerResponse ---------------------
+data SpellerResponse = SpellerResponse {
+        code :: Int,
+        pos :: Int,
+        row :: Int,
+        col :: Int,
+        len :: Int,
+        word :: Text,
+        s :: [Text]
+} deriving (Eq, Show, Generic)
+
+instance FromJSON SpellerResponse
+instance ToJSON SpellerResponse

@@ -8,7 +8,6 @@ import           Types
 import           Handlers.Messages
 import           Hasql.Pool
 import           Data.Text
-import           GHC.Int                    (Int64)
 import           Network.Wai.Middleware.Cors
 
 
