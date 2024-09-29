@@ -14,10 +14,11 @@ import           Network.Wai.Middleware.Cors
 
 type MessageAPI = "messages" :> 
                             ( "all" :> Get '[JSON] [Message]
+                             :<|> "getbyid" :> Capture' '[Required, Description "Message id"] ":identM" IdentM :> Get '[JSON] Message
                              :<|> "sortedby" :> ( 
                                                   "approve" :> QueryParam' '[Required] "isapproved" Bool :> Get '[JSON] [Message]
                                              :<|> "author"  :> QueryParam' '[Required] "authorname" Text :> Get '[JSON] [Message])
-                             :<|> "create"                  :> ReqBody '[JSON] Message                   :> Post '[JSON] Int64
+                             :<|> "create"                  :> ReqBody '[JSON] Message                   :> Post '[JSON] IdentM
                             )
                              
 messageAPI :: Proxy MessageAPI
@@ -37,5 +38,6 @@ app pool =
 
 
 server :: ServerT MessageAPI AppM
-server = getAllMessages :<|> (getSortedByApproveMessages :<|> getSortedByAuthorMessages)
+server = getAllMessages :<|> getMessageById 
+                        :<|> (getSortedByApproveMessages :<|> getSortedByAuthorMessages)
                         :<|> createMessage

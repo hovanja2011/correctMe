@@ -1,27 +1,46 @@
 
 module Types where
 
+
 import Data.Text                  hiding (filter)
 import Servant.API
 import GHC.Generics
 import Data.Aeson
+import           GHC.Int                    (Int64)
 
 import Control.Monad.Reader
 import Servant
 import Hasql.Session              (Session)
 import Control.Monad.Error.Class  (MonadError)
 import Hasql.Pool
+import GHC.Encoding.UTF8
 
 ---------------------- Message ---------------------
 
 data Message = Message {
+    id :: Int64,
     content :: Text,
-    approved :: Bool,
-    author :: Text
+    author :: Text,
+    approved :: Bool
 } deriving (Eq, Show, Generic)
 
 instance FromJSON Message
 instance ToJSON Message
+
+
+---------------------- IdentM ---------------------
+
+data IdentM = IdentM {
+    identM :: Int64
+} deriving (Eq, Show, Generic)
+
+instance FromJSON IdentM
+instance ToJSON IdentM
+
+
+instance FromHttpApiData IdentM where
+  parseUrlPiece s = Right $ IdentM ((read $ unpack s ) :: Int64)
+    -- _       -> Left . pack $ "unexpexted sortby param"
 
 
 ---------------------- SortBy ---------------------
